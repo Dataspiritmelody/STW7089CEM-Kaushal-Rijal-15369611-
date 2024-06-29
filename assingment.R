@@ -397,15 +397,6 @@ ggplot(plot_data, aes(x = Time)) +
   scale_color_manual(name = "Legend", values = c("Observed" = "black", "Predicted" = "blue", "95% CI" = "red")) +
   theme_minimal()
 
-# plotting Error Bars
-# Calculating Standard Deviation (Sigma)
-Sigma <- sqrt(VAR_model5) #Variance of model2 from task 2.3
-Sigma
-XData_model5 #Data model 2 from task 2.1
-
-dataFrame <- data.frame(xAxis = XData_model5,yAxis = Y)
-dataFrame
-
 
 
 #-------------------------------------------------------------------------------- 
