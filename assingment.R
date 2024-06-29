@@ -331,6 +331,11 @@ qqline(Error_model5, col = "#e60000", lwd = 1) # Adds Q-Q line on graph
 #--------------------------------------------------------------------------------
 
 # Splitting the data (Training Data set)
+tSplit <- initial_split(data = as.data.frame(Time), prop = .7)
+t_training_set <- training(tSplit)
+t_testing_set <- testing(tSplit)
+t_Testing_Data <- as.matrix(t_testing_Set)
+
 XSplit <- initial_split(data = as.data.frame(genes_2), prop = .7)
 YSplit <- initial_split(data = as.data.frame(Y), prop = .7)
 # Training Data set
@@ -358,34 +363,39 @@ TrainingXModel <- cbind(TrainingOneXMatrix, X_Training_Set[, "x4"], (X_Training_
 TrainingThetaHat <- solve(t(TrainingXModel) %*% TrainingXModel) %*% t(TrainingXModel) %*% Y_Training_Data
 TrainingThetaHat
 
+thetaHat <- solve(t(TrainingxModel) %% TrainingXModel) %% t(TrainingXModel) %*% Y_Training_Set
 
+print(thetaHat)
 
 # Computing output/prediction of Model2 using testing data set
 TestingYHat <- X_Testing_Data %*% TrainingThetaHat
 TestingYHat
 RSStesting <- sum((Y_Testing_Set - TestingYHat)^2)
 RSStesting
-?t.test()
-mean(Y_Training_Data)
-var(Y_Training_Data)
-#used t-test as sample size is less than 30 i.e 4 and varriance is know (calculated)
-t.test(Y_Training_Data, mu = 
-         , alternative = "two.sided", conf.level = 0.95)
-C_I1 <- 1.064562
-C_I2 <- 1.178227
-#meu <- 0.1720075
-?abline()
-# With 95% of confidence interval, predicting the model and plotting them with testing data and error bars
-par(mfrow = c(1, 1))
-TrainingDensity <- density(Y_Training_Data) # Density of training data of output signal
-TrainingDensity
-plot(TrainingDensity, col="#336600", lwd = 2, main="Distribution of Output  Training Data")
-abline(v = C_I1, col = "#e60000", lty=2)
-abline(v = C_I2, col = "#e60000", lty=2)
-#abline(v = meu, col = "#1a1a1a", lty=2)
+# Create a data frame for plotting
+plot_data <- data.frame(
+  Time = 
+  Observed = testingY,
+  Predicted = testingYHat,
+  CI_Lower = ci_lower,
+  CI_Upper = ci_upper
+)
+print(plot_data)
 
-residual <- ((Y_Testing_Set - TestingYHat)) # Calculating Error
-residual
+# Ensure column names match those used in ggplot
+colnames(plot_data) <- c("Time", "Observed", "Predicted", "CI_Lower", "CI_Upper")
+
+# With 95% of confidence interval, predicting the model and plotting them with testing data and error bars
+# Plot the observed values, predicted values, and confidence intervals with a legend
+ggplot(plot_data, aes(x = Time)) +
+  geom_point(aes(y = Observed, color = "Observed"), size = 2) +
+  geom_line(aes(y = Predicted, color = "Predicted"), size = 1) +
+  geom_errorbar(aes(ymin = CI_Lower, ymax = CI_Upper, color = "95% CI"), width = 0.2) +
+  labs(title = "Model Predictions with 95% Confidence Intervals",
+       x = "Time",
+       y = "x2 Expression Level") +
+  scale_color_manual(name = "Legend", values = c("Observed" = "black", "Predicted" = "blue", "95% CI" = "red")) +
+  theme_minimal()
 
 # plotting Error Bars
 # Calculating Standard Deviation (Sigma)
@@ -395,25 +405,6 @@ XData_model5 #Data model 2 from task 2.1
 
 dataFrame <- data.frame(xAxis = XData_model5,yAxis = Y)
 dataFrame
-ggplot(dataFrame) +
-  geom_bar( aes(x=xAxis.1, y=y1), stat="identity", fill="#336600", alpha=0.7) +
-  geom_errorbar( aes(x=xAxis.1, ymin=y1-Sigma, ymax=y1+Sigma), width=0.4, colour="#e60000", alpha=0.9, linewidth=1) +
-  labs(title="Error Bar (Model 5 - x1)", x="Model 5 - x1", y = "Output Data")
-
-ggplot(dataFrame) +
-  geom_bar( aes(x=xAxis.2, y=y1), stat="identity", fill="#336600", alpha=0.7) +
-  geom_errorbar( aes(x=xAxis.2, ymin=y1-Sigma, ymax=y1+Sigma), width=0.4, colour="#e60000", alpha=0.9, linewidth=1) +
-  labs(title="Error Bar (Model 5 - x3)", x="Model 5 - x3", y = "Output  Data")
-
-ggplot(dataFrame) +
-  geom_bar( aes(x=xAxis.3, y=y1), stat="identity", fill="#336600", alpha=0.7) +
-  geom_errorbar( aes(x=xAxis.3, ymin=y1-Sigma, ymax=y1+Sigma), width=0.4, colour="#e60000", alpha=0.9, linewidth=1) +
-  labs(title="Error Bar (Model 5 - x4)", x="Model 5 - x4", y = "Output Data")
-
-ggplot(dataFrame) +
-  geom_bar( aes(x=xAxis.4, y=y1), stat="identity", fill="#336600", alpha=0.7) +
-  geom_errorbar( aes(x=xAxis.4, ymin=y1-Sigma, ymax=y1+Sigma), width=0.4, colour="#e60000", alpha=0.9, linewidth=1) +
-  labs(title="Error Bar (Model 5 - x5)", x="Model 5 - x5", y = "Output Data")
 
 
 
@@ -432,28 +423,33 @@ ThetaB <-  0.5385828 # set constant
 ThetaC <- 0.1096679 # set constant
 Epsilon <- RSS_model5 * 2 ## fixing value of epsilon, RSS_model2 from task 2.2
 num <- 100 # number of iteration
-##Calculating Y-hat for performing rejection ABC
+##For performing rejection ABC
 counter <- 0
+?runif()
 for (i in 1:num) {
-  range1 <- runif(1, -0.483065688, 0.483065688) # calculating the range
+  #sampling parameters 
+  range1 <- runif(1, -1.2951518 , 1.2951518 ) # calculating the range
   range1
-  range2 <- runif(1, -0.143578928, 0.143578928)
+  range2 <- runif(1, -0.8312983, 0.8312983)
   range2
+  #simulating data 
   NewThetahat <- matrix(c(range1, range2, ThetaB, ThetaC))
-  NewYHat <- XData_model2 %*% NewThetahat ## New Y hat and model2_Thetahat from task2.1
+  NewYHat <- XData_model5 %*% NewThetahat ## New Y hat and model5_Thetahat from task2.1
   NewRSS <- sum((Y - NewYHat)^2)
   NewRSS
   if (NewRSS > Epsilon){ #Performing rejection ABC
     array1[i] = range1
     array2[i] = range2
+    #how many sets accepted
     counter = counter + 1
     Fvalue = matrix(array1)
     Svalue = matrix(array2)
   }
 }
-
+Fvalue 
 # Plotting the graph
 plot(Fvalue, Svalue, col = c("#ff1a1a", "#3366ff"), main = "Joint and Marginal Posterior Distribution Model 5")
+
 
 
 
